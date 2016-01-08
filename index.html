@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>xorworld</title>
+		<style>
+			body { margin: 5px; background: black; color: white; }
+			a { color: #ccc; }
+			canvas { width: 100%; height: 100% }
+			.paused, .zooming { font-weight: bold; }
+		</style>
+	</head>
+	<body>
+		<script src="js/jquery.min.js"></script>
+		<script src="js/three.min.js"></script>
+		</script>
+	<div style="text-align:center;">
+		Welcome to xorworld, generation <span id="gen"></span><span id="randomized"></span>.<br/>
+		<a href="#" id="faster">speed up</a> <a href="#" id="slower">slow down</a>
+		<a href="#" id="pause">pause</a> <a href="#" id="zoom">zoom</a>
+		<a href="#" id="save">save state</a> <a href="#" id="load" hidden>load state</a> <a href="#" id="randomize">randomize</a><br><br>
+	</div>
+	<script src="xorworld.js"></script>
+	</body>
+</html>
