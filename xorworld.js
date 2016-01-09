@@ -1,23 +1,33 @@
 (function() {
   'use strict';
   // Initial settings
-  var direction = 1;
-  var zoomy = false;
-  var paused = false;
-  var lastTime = 0;
-  var delay = 100;
-  var isRandomized = false;
-  var gen = 0;
+  var direction = 1;        // for tracking zoom direction
+  var zoomy = false;        // for autozoom feature
+  var paused = false;       // for pausing animation
+  var lastTime = 0;         // for calculating elapsed time between frames
+  var delay = 100;          // default wait between frames
+  var isRandomized = false; // we like to track artificial grids ;-)
+  var gen = 0;              // generation counter
+  var init = true;          // for tracking render initialization
+  var once = false;         // for single redraws when paused
 
-  // Setup threejs canvas
+  var gridSize = 12000;     // number of bits
+  var grid = [];            // grid array
+
+  // Shared between particle system updates/inits for convenience
+  var particles;
+  var particleSystem;
+
+  // Setup three.js canvas
   var ww = window.innerWidth;
   var wh = window.innerHeight;
   var scene = new THREE.Scene();
   var camera = new THREE.PerspectiveCamera(75, ww / wh, 0.1, 1000);
-
   var renderer = new THREE.WebGLRenderer();
-  renderer.setSize(ww, wh-100);
+  renderer.setSize(ww, wh - 100); // Leave space for menus
   document.body.appendChild(renderer.domElement);
+  setupClickHandlers();
+  render();
 
   // Generate a new chain based on XORing each value with its neighbor to the
   // left. If no chain exists, initialize each value with 1.
@@ -26,7 +36,7 @@
       var x;
       var leftNeighbor = c === 0 ? size - 1 : c - 1;
       if (chain[leftNeighbor] === undefined)
-        x = 1;
+        x = true;
       else
         x = chain[leftNeighbor] ^ chain[c];
       chain[c] = x;
@@ -34,22 +44,21 @@
     gen++;
   }
 
-  // Prepare the particle system
-  var particleSystem;
-  var gridSize = 12000;
-  var grid = [];
-
-  function makeGrid() {
-
+  // Update counter and calculate initial/new grid values
+  function prepGrid() {
     $('#gen').text(gen);
     genChain(grid, gridSize);
+  }
 
-    var particleCount = 100,
-      particles = new THREE.Geometry(),
-      pMaterial = new THREE.PointsMaterial({
-        color: 0xffffff,
-        size: 5
-      });
+  // Create grid from scratch with initial values
+  function initGrid() {
+    prepGrid();
+    particles = new THREE.Geometry();
+    var pMaterial = new THREE.PointsMaterial({
+      size: 5,
+      sizeAttenuation: false,
+      vertexColors: THREE.VertexColors
+    });
 
     var xpos = -500;
     var ypos = 300;
@@ -57,14 +66,15 @@
     var gridCopy = grid.slice(0);
     for (var l = 0; l < 60; l++) {
       for (var p = 0; p < 200; p++) {
-        if (gridCopy.shift()) {
-          var pX = xpos;
-          var pY = ypos;
-          var pZ = -400;
-          var particle = new THREE.Vector3(pX, pY, pZ);
-          // add it to the geometry
-          particles.vertices.push(particle);
-        }
+        var pX = xpos;
+        var pY = ypos;
+        var pZ = -400;
+        var particle = new THREE.Vector3(pX, pY, pZ);
+        // add it to the geometry
+        particles.vertices.push(particle);
+        var color = gridCopy.shift() ? new THREE.Color(0xffffff) :
+          new THREE.Color(0x000000);
+        particles.colors.push(color);
         xpos += 5;
       }
       ypos -= 10;
@@ -75,91 +85,106 @@
     particleSystem = new THREE.Points(
       particles,
       pMaterial);
-
-    // add it to the scene
-    scene.add(particleSystem);
   }
 
-  // Click handlers
-  $('#faster').click(function(e) {
-    if (delay > 0) {
-      delay -= 100;
-    } else {
-      $('#faster').fadeOut();
-      $('#faster').fadeIn();
+  // Update an existing grid
+  function updateGrid() {
+    prepGrid();
+    particles.colors = [];
+    var gridCopy = grid.slice(0);
+    for (var l = 0; l < 60; l++) {
+      for (var p = 0; p < 200; p++) {
+        var color = gridCopy.shift() ? new THREE.Color(0xffffff) :
+          new THREE.Color(0x000000);
+        particles.colors.push(color);
+        particles.colorsNeedUpdate = true;
+      }
     }
-  });
-  $('#slower').click(function(e) {
+  }
+
+  function setupClickHandlers() {
+    $('#faster').click(function(e) {
+      if (delay > 0) {
+        delay -= 100;
+      } else {
+        $('#faster').fadeOut();
+        $('#faster').fadeIn();
+      }
+    });
+
+    $('#slower').click(function(e) {
       delay += 100;
-  });
-  $('#pause').click(function(e) {
+    });
+
+    $('#pause').click(function(e) {
       paused = !paused;
       $('#pause').toggleClass('paused');
       if (paused)
         $('#pause').text('paused');
       else
         $('#pause').text('pause');
-  });
+    });
 
-  $('#zoom').click(function(e) {
-    zoomy = !zoomy;
-    $('#zoom').toggleClass('zooming');
-    if(zoomy)
-      $('#zoom').text('zooming');
-    else
-      $('#zoom').text('zoom');
-  });
+    $('#zoom').click(function(e) {
+      zoomy = !zoomy;
+      $('#zoom').toggleClass('zooming');
+      if (zoomy)
+        $('#zoom').text('zooming');
+      else
+        $('#zoom').text('zoom');
+    });
 
-  $('#randomize').click(function(e) {
-    grid.forEach(function(ele, ind) {grid[ind] = Math.round(Math.random()); });
-    gen = 1;
-    $('#randomized').text(' (randomized)');
-    isRandomized = true;
-    if (paused) {
-      scene.remove(particleSystem);
-      makeGrid();
-      renderer.render(scene, camera);
-    }
-  });
-
-  $('#save').click(function(e) {
-    localStorage.setItem('xorGrid', grid.join(''));
-    localStorage.setItem('xorIsRandomized', isRandomized);
-    localStorage.setItem('xorGen', gen);
-    $('#save').slideUp().slideDown();
-    $('#load').show();
-  });
-
-  $('#load').click(function(e) {
-    if(!paused)
-      $('#pause').click();
-    var state = localStorage.getItem('xorGrid');
-    grid = state.split('');
-    gen = Number(localStorage.getItem('xorGen'));
-    isRandomized = localStorage.getItem('xorIsRandomized') == 'true' ? true : false;
-    if (isRandomized)
+    $('#randomize').click(function(e) {
+      grid.forEach(function(ele, ind) {
+        grid[ind] = Math.round(Math.random());
+      });
+      gen = 1;
       $('#randomized').text(' (randomized)');
-    else
-      $('#randomized').text();
-    scene.remove(particleSystem);
-    makeGrid();
-    renderer.render(scene, camera);
-  });
+      isRandomized = true;
+      once = true;
+      if (!paused)
+        $('#pause').click();
+    });
 
-  if (localStorage.getItem('xorGrid')) {
-    $('#load').show();
+    $('#save').click(function(e) {
+      localStorage.setItem('xorGrid', grid.join(''));
+      localStorage.setItem('xorIsRandomized', isRandomized);
+      localStorage.setItem('xorGen', gen);
+      $('#save').slideUp().slideDown();
+      $('#load').show();
+    });
+
+    $('#load').click(function(e) {
+      var state = localStorage.getItem('xorGrid');
+      grid = state.split('');
+      gen = Number(localStorage.getItem('xorGen'));
+      isRandomized = localStorage.getItem('xorIsRandomized') == 'true' ? true : false;
+      if (isRandomized)
+        $('#randomized').text(' (randomized)');
+      else
+        $('#randomized').text('');
+      once = true;
+      if (!paused)
+        $('#pause').click();
+    });
+
+    if (localStorage.getItem('xorGrid')) {
+      $('#load').show();
+    }
+
   }
-
-  render();
-
 
   // Render loop
   function render(time) {
     requestAnimationFrame(render);
 
-    if (paused || (time - lastTime) < delay) {
+    if ((paused && !once) || (time - lastTime) < delay) {
       return;
     }
+
+    if (once)
+      once = false;
+
     lastTime = time;
 
     if (zoomy) {
@@ -173,8 +198,13 @@
           direction = 1;
       }
     }
-    scene.remove(particleSystem);
-    makeGrid();
+    if (init) {
+      initGrid();
+      scene.add(particleSystem);
+      init = false;
+    } else {
+      updateGrid();
+    }
     renderer.render(scene, camera);
   }
 }());
