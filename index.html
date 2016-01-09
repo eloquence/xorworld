@@ -1,25 +1,67 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset=utf-8>
-		<title>xorworld</title>
-		<style>
-			body { margin: 5px; background: black; color: white; }
-			a { color: #ccc; }
-			canvas { width: 100%; height: 100% }
-			.paused, .zooming { font-weight: bold; }
-		</style>
-	</head>
-	<body>
-		<script src="js/jquery.min.js"></script>
-		<script src="js/three.min.js"></script>
-		</script>
-	<div style="text-align:center;">
-		Welcome to xorworld, generation <span id="gen"></span><span id="randomized"></span>.<br/>
+
+<head>
+	<meta charset=utf-8>
+	<title>xorworld</title>
+	<style>
+		body {
+			margin: 5px;
+			background: black;
+			color: white;
+		}
+
+		a {
+			color: #ccc;
+		}
+
+		canvas {
+			width: 100%;
+			height: 100%
+		}
+
+		.paused,
+		.zooming {
+			font-weight: bold;
+		}
+
+		.header {
+			margin-left: auto;
+			margin-right: auto;
+			width: 80%;
+			font-family: monospace;
+		}
+
+		.meta {
+			float: right;
+		}
+	</style>
+</head>
+
+<body>
+	<script src="js/jquery.min.js"></script>
+	<script src="js/three.min.js"></script>
+	<script src="js/md5.js"></script>
+	</script>
+
+	<div class="header">
+		<div class="meta">Generation:
+			<span id="gen"></span>
+			<span id="randomized"></span>
+			<br> Hash:
+			<span id="md5"></span>
+		</div>
+		Welcome to xorworld.
+		<br/>
 		<a href="#" id="faster">speed up</a> <a href="#" id="slower">slow down</a>
 		<a href="#" id="pause">pause</a> <a href="#" id="zoom">zoom</a>
-		<a href="#" id="save">save state</a> <a href="#" id="load" hidden>load state</a> <a href="#" id="randomize">randomize</a><br><br>
+		<a href="#" id="save">save state</a> <a href="#" id="load" hidden>load state</a>
+		<a href="#" id="randomize">randomize</a> &middot;
+		<a href="https://github.com/eloquence/xorworld" target="_blank">github</a>
+		<br>
+		<br>
 	</div>
 	<script src="xorworld.js"></script>
-	</body>
+</body>
+
 </html>

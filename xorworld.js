@@ -13,7 +13,6 @@
 
   var gridSize = 12000;     // number of bits
   var grid = [];            // grid array
-
   // Shared between particle system updates/inits for convenience
   var particles;
   var particleSystem;
@@ -36,12 +35,13 @@
       var x;
       var leftNeighbor = c === 0 ? size - 1 : c - 1;
       if (chain[leftNeighbor] === undefined)
-        x = true;
+        x = 1;
       else
         x = chain[leftNeighbor] ^ chain[c];
       chain[c] = x;
     }
     gen++;
+    $('#md5').text(CryptoJS.MD5(chain.join('')).toString());
   }
 
   // Update counter and calculate initial/new grid values
