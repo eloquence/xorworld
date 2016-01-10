@@ -1,6 +1,10 @@
 # xorworld
 
 A tiny three.js experiment. No random numbers are involved (unless you click randomize!).
+Generation 652207 says hello:
+
+![](https://eloquence.github.io/xorworld/example.png)
+
 
 The grid is constructed initially with each value set to 1. Then, every cell
 is XOR'd to its left neighbor. This operation is run repeatedly, and
