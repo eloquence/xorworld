@@ -234,6 +234,7 @@
     $('#reset').click(function(e) {
       once = true;
       resetGrid();
+      gen = 1;
     });
 
   }
