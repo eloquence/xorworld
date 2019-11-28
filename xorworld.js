@@ -221,7 +221,7 @@
       mono = !mono;
       $('#mono').toggleClass('toggled');
       if (mono)
-        $('body').append('<iframe id="music" width="100%" hidden scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1245420&amp;auto_play=true&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;visual=true"></iframe>');
+        $('body').append('<iframe width="100%" height="300" scrolling="no" frameborder="no" hidden allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/194464356&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"></iframe>');
       else
         $('#music').remove();
     });
